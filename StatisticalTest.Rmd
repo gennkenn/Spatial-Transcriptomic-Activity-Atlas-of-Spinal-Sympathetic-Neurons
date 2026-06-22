@@ -1,0 +1,543 @@
+---
+title: "StatisticalTest"
+author: "Haruaki Sato"
+date: "2025-10-09"
+output: html_document
+---
+```{r}
+install.packages("exactRankTests")
+library(exactRankTests)
+```
+
+```{r setup, include=FALSE}
+# merged.obj_ViscMN_afterQC <- prep_FindMarkers(merged.obj_ViscMN_afterQC)
+merged.obj_SPN_woQIHLPS_afterQC3@active.assay='SCT'
+IEGs.to.plot =  c("Fos","Arc","Egr1","Npas4","Homer1","Fosb","Nr4a1","Dusp1")
+
+```
+
+```{r}
+# Fig2d
+library(Seurat)
+library(dplyr)
+library(purrr)
+library(openxlsx)
+
+obj <- merged.obj_SPN_woQIHLPS_afterQC3
+
+# cluster情報をmetadataへ追加
+meta_df <- obj@meta.data
+meta_df$Cluster <- as.character(Idents(obj))
+
+# Fos発現量を取得
+meta_df$Fos <- FetchData(obj, vars = "Fos")[, 1]
+
+# IEG_score列名を確認してください
+# 例: "IEG_score" という列がmetadataにある場合
+score_col <- "IEG_score1"
+
+# 条件順を指定
+meta_df$Condition <- factor(
+  meta_df$Condition,
+  levels = c("Ctrl", "Cold", "2DG")
+)
+
+# 1クラスター内でWilcoxon + Holm補正を行う関数
+run_cluster_tests <- function(df, value_col) {
+  
+  comparisons <- list(
+    c("Ctrl", "Cold"),
+    c("Ctrl", "2DG")
+  )
+  
+  res <- map_dfr(comparisons, function(comp) {
+    
+    df_sub <- df %>%
+      filter(Condition %in% comp) %>%
+      filter(!is.na(.data[[value_col]]))
+    
+    n_ctrl <- sum(df_sub$Condition == "Ctrl")
+    n_treat <- sum(df_sub$Condition == comp[2])
+    
+    if (n_ctrl == 0 | n_treat == 0) {
+      pval <- NA_real_
+    } else {
+      pval <- wilcox.test(
+        df_sub[[value_col]] ~ df_sub$Condition,
+        exact = FALSE
+      )$p.value
+    }
+    
+    tibble(
+      comparison = paste(comp[2], "vs Ctrl"),
+      variable = value_col,
+      n_ctrl = n_ctrl,
+      n_treat = n_treat,
+      mean_ctrl = mean(df_sub[[value_col]][df_sub$Condition == "Ctrl"], na.rm = TRUE),
+      mean_treat = mean(df_sub[[value_col]][df_sub$Condition == comp[2]], na.rm = TRUE),
+      median_ctrl = median(df_sub[[value_col]][df_sub$Condition == "Ctrl"], na.rm = TRUE),
+      median_treat = median(df_sub[[value_col]][df_sub$Condition == comp[2]], na.rm = TRUE),
+      p_value = pval
+    )
+  })
+  
+  res %>%
+    mutate(
+      p_adj_holm = p.adjust(p_value, method = "holm")
+    )
+}
+
+# 全クラスター × Fos
+fos_res <- meta_df %>%
+  group_by(Cluster) %>%
+  group_modify(~ run_cluster_tests(.x, "Fos")) %>%
+  ungroup()
+
+# 全クラスター × IEG_score
+ieg_res <- meta_df %>%
+  group_by(Cluster) %>%
+  group_modify(~ run_cluster_tests(.x, score_col)) %>%
+  ungroup()
+
+# 結合
+all_res <- bind_rows(fos_res, ieg_res) %>%
+  arrange(variable, as.numeric(Cluster), comparison)
+
+# xlsx出力
+write.xlsx(
+  all_res,
+  file = "Fos_IEGscore_Wilcoxon_Holm_by_cluster.xlsx",
+  rowNames = FALSE
+)
+```
+
+
+```{r}
+# Fig2d bonferroni
+library(Seurat)
+library(dplyr)
+library(purrr)
+library(openxlsx)
+
+obj <- merged.obj_SPN_woQIHLPS_afterQC3
+
+# cluster情報をmetadataへ追加
+meta_df <- obj@meta.data
+meta_df$Cluster <- as.character(Idents(obj))
+
+# Fos発現量を取得
+meta_df$Fos <- FetchData(obj, vars = "Fos")[, 1]
+
+# IEG_score列名を確認してください
+# 例: "IEG_score" という列がmetadataにある場合
+score_col <- "IEG_score1"
+
+# 条件順を指定
+meta_df$Condition <- factor(
+  meta_df$Condition,
+  levels = c("Ctrl", "Cold", "2DG")
+)
+
+# 1クラスター内でWilcoxon + Holm補正を行う関数
+run_cluster_tests <- function(df, value_col) {
+  
+  comparisons <- list(
+    c("Ctrl", "Cold"),
+    c("Ctrl", "2DG")
+  )
+  
+  res <- map_dfr(comparisons, function(comp) {
+    
+    df_sub <- df %>%
+      filter(Condition %in% comp) %>%
+      filter(!is.na(.data[[value_col]]))
+    
+    n_ctrl <- sum(df_sub$Condition == "Ctrl")
+    n_treat <- sum(df_sub$Condition == comp[2])
+    
+    if (n_ctrl == 0 | n_treat == 0) {
+      pval <- NA_real_
+    } else {
+      pval <- wilcox.test(
+        df_sub[[value_col]] ~ df_sub$Condition,
+        exact = FALSE
+      )$p.value
+    }
+    
+    tibble(
+      comparison = paste(comp[2], "vs Ctrl"),
+      variable = value_col,
+      n_ctrl = n_ctrl,
+      n_treat = n_treat,
+      mean_ctrl = mean(df_sub[[value_col]][df_sub$Condition == "Ctrl"], na.rm = TRUE),
+      mean_treat = mean(df_sub[[value_col]][df_sub$Condition == comp[2]], na.rm = TRUE),
+      median_ctrl = median(df_sub[[value_col]][df_sub$Condition == "Ctrl"], na.rm = TRUE),
+      median_treat = median(df_sub[[value_col]][df_sub$Condition == comp[2]], na.rm = TRUE),
+      p_value = pval
+    )
+  })
+  
+  res %>%
+    mutate(
+      p_adj_holm = p.adjust(p_value, method = "bonferroni")
+    )
+}
+
+# 全クラスター × Fos
+fos_res <- meta_df %>%
+  group_by(Cluster) %>%
+  group_modify(~ run_cluster_tests(.x, "Fos")) %>%
+  ungroup()
+
+# 全クラスター × IEG_score
+ieg_res <- meta_df %>%
+  group_by(Cluster) %>%
+  group_modify(~ run_cluster_tests(.x, score_col)) %>%
+  ungroup()
+
+# 結合
+all_res <- bind_rows(fos_res, ieg_res) %>%
+  arrange(variable, as.numeric(Cluster), comparison)
+
+# xlsx出力
+write.xlsx(
+  all_res,
+  file = "Fos_IEGscore_Wilcoxon_Bonferroni_by_cluster.xlsx",
+  rowNames = FALSE
+)
+```
+
+
+```{r}
+# Fig2e　Bonferroni
+
+library(Seurat)
+library(dplyr)
+library(purrr)
+library(openxlsx)
+
+obj <- merged.obj_SPN_woQIHLPS_afterQC3
+
+# ===============================
+# 1. metadata作成
+# ===============================
+
+meta_df <- obj@meta.data
+
+# active.identをCluster列として追加
+meta_df$Cluster <- as.character(Idents(obj))
+
+# SPN_subtype列を使う場合はこちらでもOK
+# meta_df$Cluster <- as.character(meta_df$SPN_subtype)
+
+# Fos発現量を取得
+meta_df$Fos <- FetchData(obj, vars = "Fos")[, 1]
+
+# IEG_score列名
+score_col <- "IEG_score1"
+
+# cluster 6,7,8に絞る
+meta_df_sub <- meta_df %>%
+  filter(Cluster %in% c("6", "7", "8")) %>%
+  filter(ConditionSex %in% c(
+    "CtrlM", "ColdM", "2DGM",
+    "CtrlF", "ColdF", "2DGF"
+  ))
+
+# ===============================
+# 2. 検定関数
+# ===============================
+
+run_cluster_sex_tests <- function(df, value_col) {
+  
+  comparisons <- list(
+    c("CtrlM", "ColdM"),
+    c("CtrlM", "2DGM"),
+    c("CtrlF", "ColdF"),
+    c("CtrlF", "2DGF")
+  )
+  
+  res <- map_dfr(comparisons, function(comp) {
+    
+    ctrl_group <- comp[1]
+    treat_group <- comp[2]
+    
+    df_sub <- df %>%
+      filter(ConditionSex %in% comp) %>%
+      filter(!is.na(.data[[value_col]]))
+    
+    n_ctrl <- sum(df_sub$ConditionSex == ctrl_group)
+    n_treat <- sum(df_sub$ConditionSex == treat_group)
+    
+    if (n_ctrl == 0 | n_treat == 0) {
+      pval <- NA_real_
+    } else {
+      pval <- wilcox.test(
+        df_sub[[value_col]] ~ df_sub$ConditionSex,
+        exact = FALSE
+      )$p.value
+    }
+    
+    tibble(
+      comparison = paste(treat_group, "vs", ctrl_group),
+      variable = value_col,
+      control_group = ctrl_group,
+      treatment_group = treat_group,
+      n_control = n_ctrl,
+      n_treatment = n_treat,
+      mean_control = mean(
+        df_sub[[value_col]][df_sub$ConditionSex == ctrl_group],
+        na.rm = TRUE
+      ),
+      mean_treatment = mean(
+        df_sub[[value_col]][df_sub$ConditionSex == treat_group],
+        na.rm = TRUE
+      ),
+      median_control = median(
+        df_sub[[value_col]][df_sub$ConditionSex == ctrl_group],
+        na.rm = TRUE
+      ),
+      median_treatment = median(
+        df_sub[[value_col]][df_sub$ConditionSex == treat_group],
+        na.rm = TRUE
+      ),
+      p_value = pval
+    )
+  })
+  
+  res %>%
+    mutate(
+      p_adj_holm = p.adjust(p_value, method = "bonferroni")
+    )
+}
+
+# ===============================
+# 3. clusterごとに検定
+# ===============================
+
+fos_res <- meta_df_sub %>%
+  group_by(Cluster) %>%
+  group_modify(~ run_cluster_sex_tests(.x, "Fos")) %>%
+  ungroup()
+
+ieg_res <- meta_df_sub %>%
+  group_by(Cluster) %>%
+  group_modify(~ run_cluster_sex_tests(.x, score_col)) %>%
+  ungroup()
+
+# ===============================
+# 4. 結果を統合
+# ===============================
+
+all_res <- bind_rows(fos_res, ieg_res) %>%
+  mutate(
+    Cluster = factor(Cluster, levels = c("6", "7", "8")),
+    comparison = factor(
+      comparison,
+      levels = c(
+        "ColdM vs CtrlM",
+        "2DGM vs CtrlM",
+        "ColdF vs CtrlF",
+        "2DGF vs CtrlF"
+      )
+    )
+  ) %>%
+  arrange(Cluster, variable, comparison)
+
+# ===============================
+# 5. xlsx出力
+# ===============================
+
+write.xlsx(
+  all_res,
+  file = "Fos_IEGscore_Wilcoxon_Bonferroni_cluster6_7_8_by_ConditionSex.xlsx",
+  rowNames = FALSE
+)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+```{r}
+# Fig1k
+library(dplyr)
+
+meta_df <- merged.obj_SPN_woQIHLPS_afterQC3@meta.data
+meta_df$Cluster <- Idents(merged.obj_SPN_woQIHLPS_afterQC3)
+
+clusters <- unique(meta_df$Cluster)
+
+result_list <- list()
+
+meta_df$Sex <- factor(
+  meta_df$Sex,
+  levels = c("Female", "Male")
+)
+
+for(cl in clusters){
+
+  # そのclusterかどうか
+  in_cluster <- meta_df$Cluster == cl
+
+  # 2x2 table作成
+  tbl <- table(
+    Sex = meta_df$Sex,
+    InCluster = in_cluster
+  )
+
+  # Fisher検定
+  test <- fisher.test(tbl)
+
+  # 結果保存
+  result_list[[as.character(cl)]] <- data.frame(
+    Cluster = cl,
+    P_value = test$p.value,
+    Odds_ratio = test$estimate
+  )
+}
+
+sex_bias_df <- bind_rows(result_list)
+
+# 多重検定補正
+sex_bias_df$Adjusted_P <- p.adjust(
+  sex_bias_df$P_value,
+  method = "holm"
+)
+
+sex_bias_df
+
+# write.csv2(sex_bias_df, "Fig1k_statistics.csv")
+```
+
+
+```{r}
+# EDFig2f
+#クラスター6の割合がCondition間で変化しないことを証明する
+library(dplyr)
+
+meta <- merged.obj_SPN_woQIHLPS_afterQC3@meta.data
+
+meta$Condition <- case_when(
+  grepl("^Ctrl", meta$ConditionSex) ~ "Ctrl",
+  grepl("^Cold", meta$ConditionSex) ~ "Cold",
+  grepl("^2DG",  meta$ConditionSex) ~ "2DG"
+)
+
+meta$Cluster6 <- meta$SPN_subtype == 6
+
+tab <- table(
+  meta$Condition,
+  meta$Cluster6
+)
+
+tab
+
+
+
+# 3比較をまとめて実行
+pair_list <- list(
+  c("Ctrl","Cold"),
+  c("Ctrl","2DG"),
+  c("Cold","2DG")
+)
+
+result <- lapply(pair_list, function(x){
+
+  tmp <- tab[x, ]
+
+  ft <- fisher.test(tmp)
+
+  data.frame(
+    Comparison = paste(x, collapse = " vs "),
+    OddsRatio = unname(ft$estimate),
+    Pvalue = ft$p.value
+  )
+})
+
+result_df <- do.call(rbind, result)
+
+result_df
+
+
+# Holm 補正
+result_df$P_adj <- p.adjust(
+  result_df$Pvalue,
+  method = "holm"
+)
+
+result_df
+write.csv2(result_df,"EDFig2f_statisticas.csv")
+```
+
+```{r}
+# Fig2g
+# Fisher exact検定
+library(dplyr)
+library(tidyr)
+library(purrr)
+
+# Fisher exact test用の集計
+fisher_df <- df %>%
+  filter(
+    SPN_subtype == 6,
+    Condition %in% c("Cold", "2DG"),
+    segments %in% segment_levels,
+    !is.na(segments)
+  ) %>%
+  mutate(
+    Fos_status = ifelse(Fos_positive, "Fos_positive", "Fos_negative")
+  ) %>%
+  count(
+    segments,
+    Condition,
+    Fos_status,
+    name = "n"
+  ) %>%
+  complete(
+    segments,
+    Condition = c("Cold", "2DG"),
+    Fos_status = c("Fos_positive", "Fos_negative"),
+    fill = list(n = 0)
+  )
+
+# segmentごとにFisher exact test
+fisher_res <- fisher_df %>%
+  group_by(segments) %>%
+  group_modify(~ {
+    
+    tab <- xtabs(
+      n ~ Condition + Fos_status,
+      data = .x
+    )
+    
+    test <- fisher.test(tab)
+    
+    tibble(
+      Cold_Fos_positive = tab["Cold", "Fos_positive"],
+      Cold_Fos_negative = tab["Cold", "Fos_negative"],
+      DG_Fos_positive = tab["2DG", "Fos_positive"],
+      DG_Fos_negative = tab["2DG", "Fos_negative"],
+      odds_ratio = unname(test$estimate),
+      p_value = test$p.value
+    )
+  }) %>%
+  ungroup() %>%
+  mutate(
+    p_adj_BH = p.adjust(p_value, method = "BH"),
+    p_adj_Holm = p.adjust(p_value, method = "holm")
+  )
+
+fisher_res
+
+```
+
+

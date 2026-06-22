@@ -1,0 +1,382 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Ctrl+Shift+Enter*. 
+
+```{r}
+# RCTD
+merged.obj_SPN_woQIHLPS_afterQC3@active.assay='Xenium'
+merged.obj_SPN_woQIHLPS_afterQC3 <- JoinLayers(merged.obj_SPN_woQIHLPS_afterQC3)
+query.counts <- GetAssayData(merged.obj_SPN_woQIHLPS_afterQC3, assay = "Xenium", slot = "counts")
+coords <- GetTissueCoordinates(merged.obj_SPN_woQIHLPS_afterQC3[["fov"]], which = "centroids")
+rownames(coords) <- coords$cell
+coords$cell <- NULL
+query <- SpatialRNA(coords, query.counts, colSums(query.counts))
+
+
+# remove CR cells because there aren't enough of them for annotation
+SC_merged_cholinergicneuron_Nos1@active.assay='RNA'
+counts <- GetAssayData(SC_merged_cholinergicneuron_Nos1, assay = "RNA", slot = "counts")
+cluster <- as.factor(SC_merged_cholinergicneuron_Nos1$cellltype)
+names(cluster) <- colnames(SC_merged_cholinergicneuron_Nos1)
+nUMI <- SC_merged_cholinergicneuron_Nos1$nCount_RNA
+names(nUMI) <- colnames(SC_merged_cholinergicneuron_Nos1)
+nUMI <- colSums(counts)
+levels(cluster) <- gsub("/", "-", levels(cluster))
+reference <- Reference(counts, cluster, nUMI)
+
+
+# run RCTD with many cores
+RCTD.ctrl1 <- create.RCTD(query, reference, max_cores = 8)
+RCTD.ctrl1 <- run.RCTD(RCTD.ctrl1, doublet_mode = "doublet")
+
+annotations.df <- RCTD.ctrl1@results$results_df
+annotations <- annotations.df$first_type
+names(annotations) <- rownames(annotations.df)
+merged.obj_SPN_woQIHLPS_afterQC3$predicted.celltype <- annotations
+
+```
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Ctrl+Alt+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Ctrl+Shift+K* to preview the HTML file).
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
+```{r}
+# RCTD
+# SC_merged_cholinergicneuron_Nos1<-readRDS('SC_merged_cholinergicneuron_Nos1')
+# merged.obj_ViscMN_afterQC@active.assay='Xenium'
+# merged.obj_ViscMN_afterQC <- JoinLayers(merged.obj_ViscMN_afterQC)
+query.counts <- GetAssayData(merged.obj_SPN_woQIHLPS_afterQC3, assay = "Xenium", slot = "counts")
+# crop <- Crop(merged.obj_ViscMN_afterQC[["fov"]])
+# merged.obj_ViscMN_afterQC[["crop"]] <- crop
+coords <- GetTissueCoordinates(merged.obj_SPN_woQIHLPS_afterQC3[["fov.Ctrl2"]], which = "centroids")
+rownames(coords) <- coords$cell
+coords$cell <- NULL
+query <- SpatialRNA(coords, query.counts, colSums(query.counts))
+
+
+
+# run RCTD with many cores
+RCTD.ctrl2 <- create.RCTD(query, reference, max_cores = 8)
+RCTD.ctrl2 <- run.RCTD(RCTD.ctrl2, doublet_mode = "doublet")
+
+annotations.df <- RCTD.ctrl2@results$results_df
+annotations <- annotations.df$first_type
+names(annotations) <- rownames(annotations.df)
+merged.obj_SPN_woQIHLPS_afterQC3$predicted.celltype <- annotations
+```
+
+```{r}
+# RCTD
+# SC_merged_cholinergicneuron_Nos1<-readRDS('SC_merged_cholinergicneuron_Nos1')
+# merged.obj_ViscMN_afterQC@active.assay='Xenium'
+# merged.obj_ViscMN_afterQC <- JoinLayers(merged.obj_ViscMN_afterQC)
+query.counts <- GetAssayData(merged.obj_SPN_woQIHLPS_afterQC3, assay = "Xenium", slot = "counts")
+# crop <- Crop(merged.obj_ViscMN_afterQC[["fov"]])
+# merged.obj_ViscMN_afterQC[["crop"]] <- crop
+coords <- GetTissueCoordinates(merged.obj_SPN_woQIHLPS_afterQC3[["fov.Ctrl3"]], which = "centroids")
+rownames(coords) <- coords$cell
+coords$cell <- NULL
+query <- SpatialRNA(coords, query.counts, colSums(query.counts))
+
+
+
+# run RCTD with many cores
+RCTD.ctrl3 <- create.RCTD(query, reference, max_cores = 8)
+RCTD.ctrl3 <- run.RCTD(RCTD.ctrl3, doublet_mode = "doublet")
+
+annotations.df <- RCTD.ctrl3@results$results_df
+annotations <- annotations.df$first_type
+names(annotations) <- rownames(annotations.df)
+merged.obj_SPN_woQIHLPS_afterQC3$predicted.celltype <- annotations
+```
+
+
+```{r}
+# RCTD
+# SC_merged_cholinergicneuron_Nos1<-readRDS('SC_merged_cholinergicneuron_Nos1')
+# merged.obj_ViscMN_afterQC@active.assay='Xenium'
+# merged.obj_ViscMN_afterQC <- JoinLayers(merged.obj_ViscMN_afterQC)
+query.counts <- GetAssayData(merged.obj_SPN_woQIHLPS_afterQC3, assay = "Xenium", slot = "counts")
+# crop <- Crop(merged.obj_ViscMN_afterQC[["fov"]])
+# merged.obj_ViscMN_afterQC[["crop"]] <- crop
+coords <- GetTissueCoordinates(merged.obj_SPN_woQIHLPS_afterQC3[["fov.2"]], which = "centroids")
+rownames(coords) <- coords$cell
+coords$cell <- NULL
+query <- SpatialRNA(coords, query.counts, colSums(query.counts))
+
+
+
+# run RCTD with many cores
+RCTD.cold1 <- create.RCTD(query, reference, max_cores = 8)
+RCTD.cold1 <- run.RCTD(RCTD.cold1, doublet_mode = "doublet")
+
+annotations.df <- RCTD.cold1@results$results_df
+annotations <- annotations.df$first_type
+names(annotations) <- rownames(annotations.df)
+merged.obj_SPN_woQIHLPS_afterQC3$predicted.celltype <- annotations
+```
+
+
+```{r}
+# RCTD
+# SC_merged_cholinergicneuron_Nos1<-readRDS('SC_merged_cholinergicneuron_Nos1')
+# merged.obj_ViscMN_afterQC@active.assay='Xenium'
+# merged.obj_ViscMN_afterQC <- JoinLayers(merged.obj_ViscMN_afterQC)
+query.counts <- GetAssayData(merged.obj_SPN_woQIHLPS_afterQC3, assay = "Xenium", slot = "counts")
+# crop <- Crop(merged.obj_ViscMN_afterQC[["fov"]])
+# merged.obj_ViscMN_afterQC[["crop"]] <- crop
+coords <- GetTissueCoordinates(merged.obj_SPN_woQIHLPS_afterQC3[["fov.Cold2"]], which = "centroids")
+rownames(coords) <- coords$cell
+coords$cell <- NULL
+query <- SpatialRNA(coords, query.counts, colSums(query.counts))
+
+
+
+# run RCTD with many cores
+RCTD.cold2 <- create.RCTD(query, reference, max_cores = 8)
+RCTD.cold2 <- run.RCTD(RCTD.cold2, doublet_mode = "doublet")
+
+annotations.df <- RCTD.cold2@results$results_df
+annotations <- annotations.df$first_type
+names(annotations) <- rownames(annotations.df)
+merged.obj_SPN_woQIHLPS_afterQC3$predicted.celltype <- annotations
+```
+
+```{r}
+# RCTD
+# SC_merged_cholinergicneuron_Nos1<-readRDS('SC_merged_cholinergicneuron_Nos1')
+# merged.obj_ViscMN_afterQC@active.assay='Xenium'
+# merged.obj_ViscMN_afterQC <- JoinLayers(merged.obj_ViscMN_afterQC)
+query.counts <- GetAssayData(merged.obj_SPN_woQIHLPS_afterQC3, assay = "Xenium", slot = "counts")
+# crop <- Crop(merged.obj_ViscMN_afterQC[["fov"]])
+# merged.obj_ViscMN_afterQC[["crop"]] <- crop
+coords <- GetTissueCoordinates(merged.obj_SPN_woQIHLPS_afterQC3[["fov.Cold3"]], which = "centroids")
+rownames(coords) <- coords$cell
+coords$cell <- NULL
+query <- SpatialRNA(coords, query.counts, colSums(query.counts))
+
+
+
+# run RCTD with many cores
+RCTD.cold3 <- create.RCTD(query, reference, max_cores = 8)
+RCTD.cold3 <- run.RCTD(RCTD.cold3, doublet_mode = "doublet")
+
+annotations.df <- RCTD.cold3@results$results_df
+annotations <- annotations.df$first_type
+names(annotations) <- rownames(annotations.df)
+merged.obj_SPN_woQIHLPS_afterQC3$predicted.celltype <- annotations
+```
+
+
+```{r}
+# RCTD
+# SC_merged_cholinergicneuron_Nos1<-readRDS('SC_merged_cholinergicneuron_Nos1')
+# merged.obj_ViscMN_afterQC@active.assay='Xenium'
+# merged.obj_ViscMN_afterQC <- JoinLayers(merged.obj_ViscMN_afterQC)
+query.counts <- GetAssayData(merged.obj_SPN_woQIHLPS_afterQC3, assay = "Xenium", slot = "counts")
+# crop <- Crop(merged.obj_ViscMN_afterQC[["fov"]])
+# merged.obj_ViscMN_afterQC[["crop"]] <- crop
+coords <- GetTissueCoordinates(merged.obj_SPN_woQIHLPS_afterQC3[["fov.2.3"]], which = "centroids")
+rownames(coords) <- coords$cell
+coords$cell <- NULL
+query <- SpatialRNA(coords, query.counts, colSums(query.counts))
+
+
+
+# run RCTD with many cores
+RCTD.CtrlF <- create.RCTD(query, reference, max_cores = 8)
+RCTD.CtrlF <- run.RCTD(RCTD.CtrlF, doublet_mode = "doublet")
+
+annotations.df <- RCTD.CtrlF@results$results_df
+annotations <- annotations.df$first_type
+names(annotations) <- rownames(annotations.df)
+merged.obj_SPN_woQIHLPS_afterQC3$predicted.celltype <- annotations
+```
+
+
+```{r}
+# RCTD
+# SC_merged_cholinergicneuron_Nos1<-readRDS('SC_merged_cholinergicneuron_Nos1')
+# merged.obj_ViscMN_afterQC@active.assay='Xenium'
+# merged.obj_ViscMN_afterQC <- JoinLayers(merged.obj_ViscMN_afterQC)
+query.counts <- GetAssayData(merged.obj_SPN_woQIHLPS_afterQC3, assay = "Xenium", slot = "counts")
+# crop <- Crop(merged.obj_ViscMN_afterQC[["fov"]])
+# merged.obj_ViscMN_afterQC[["crop"]] <- crop
+coords <- GetTissueCoordinates(merged.obj_SPN_woQIHLPS_afterQC3[["fov.coldF"]], which = "centroids")
+rownames(coords) <- coords$cell
+coords$cell <- NULL
+query <- SpatialRNA(coords, query.counts, colSums(query.counts))
+
+
+
+# run RCTD with many cores
+RCTD.ColdF <- create.RCTD(query, reference, max_cores = 8)
+RCTD.ColdF <- run.RCTD(RCTD.ColdF, doublet_mode = "doublet")
+
+annotations.df <- RCTD.ColdF@results$results_df
+annotations <- annotations.df$first_type
+names(annotations) <- rownames(annotations.df)
+merged.obj_SPN_woQIHLPS_afterQC3$predicted.celltype <- annotations
+```
+
+
+```{r}
+# RCTD
+
+query.counts <- GetAssayData(merged.obj_SPN_woQIHLPS_afterQC3, assay = "Xenium", slot = "counts")
+coords <- GetTissueCoordinates(merged.obj_SPN_woQIHLPS_afterQC3[["fov.2DGM"]], which = "centroids")
+rownames(coords) <- coords$cell
+coords$cell <- NULL
+query <- SpatialRNA(coords, query.counts, colSums(query.counts))
+
+
+
+# run RCTD with many cores
+RCTD.2DGM <- create.RCTD(query, reference, max_cores = 8)
+RCTD.2DGM <- run.RCTD(RCTD.2DGM, doublet_mode = "doublet")
+
+annotations.df <- RCTD.2DGM@results$results_df
+annotations <- annotations.df$first_type
+names(annotations) <- rownames(annotations.df)
+merged.obj_SPN_woQIHLPS_afterQC3$predicted.celltype <- annotations
+
+
+```
+
+
+```{r}
+# RCTD
+query.counts <- GetAssayData(merged.obj_SPN_woQIHLPS_afterQC3, assay = "Xenium", slot = "counts")
+coords <- GetTissueCoordinates(merged.obj_SPN_woQIHLPS_afterQC3[["fov.2DGF"]], which = "centroids")
+rownames(coords) <- coords$cell
+coords$cell <- NULL
+query <- SpatialRNA(coords, query.counts, colSums(query.counts))
+
+
+
+# run RCTD with many cores
+RCTD.2DGF <- create.RCTD(query, reference, max_cores = 8)
+RCTD.2DGF <- run.RCTD(RCTD.2DGF, doublet_mode = "doublet")
+
+annotations.df <- RCTD.2DGF@results$results_df
+annotations <- annotations.df$first_type
+names(annotations) <- rownames(annotations.df)
+merged.obj_SPN_woQIHLPS_afterQC3$predicted.celltype <- annotations
+```
+
+
+
+```{r}
+annotations.df <- RCTD.ctrl1@results$results_df
+annotations1 <- annotations.df$first_type
+names(annotations1) <- rownames(annotations.df)
+
+annotations.df <- RCTD.ctrl2@results$results_df
+annotations2 <- annotations.df$first_type
+names(annotations2) <- rownames(annotations.df)
+
+annotations.df <- RCTD.ctrl3@results$results_df
+annotations3 <- annotations.df$first_type
+names(annotations3) <- rownames(annotations.df)
+
+annotations.df <- RCTD.cold1@results$results_df
+annotations4 <- annotations.df$first_type
+names(annotations4) <- rownames(annotations.df)
+
+annotations.df <- RCTD.cold2@results$results_df
+annotations5 <- annotations.df$first_type
+names(annotations5) <- rownames(annotations.df)
+
+annotations.df <- RCTD.cold3@results$results_df
+annotations6 <- annotations.df$first_type
+names(annotations6) <- rownames(annotations.df)
+
+annotations.df <- RCTD.CtrlF@results$results_df
+annotations7 <- annotations.df$first_type
+names(annotations7) <- rownames(annotations.df)
+
+annotations.df <- RCTD.ColdF@results$results_df
+annotations8 <- annotations.df$first_type
+names(annotations8) <- rownames(annotations.df)
+
+annotations.df <- RCTD.2DGM@results$results_df
+annotations9 <- annotations.df$first_type
+names(annotations9) <- rownames(annotations.df)
+
+annotations.df <- RCTD.2DGF@results$results_df
+annotations10 <- annotations.df$first_type
+names(annotations10) <- rownames(annotations.df)
+
+annotations<-c(annotations1,annotations2,annotations3,annotations4,annotations5,annotations6,annotations7,annotations8,annotations9,annotations10)
+
+merged.obj_SPN_woQIHLPS_afterQC3$predicted.celltype <- annotations
+```
+
+```{r}
+saveRDS(merged.obj_SPN_woQIHLPS_afterQC3,"merged.obj_SPN_woQIHLPS_afterQC3.rds")
+```
+
+
+#sankey plot描出
+
+```{r}
+
+```
+
+```{r}
+library(ggplot2)
+library(ggalluvial)
+
+# 必要な列だけ抽出
+meta_df <- merged.obj_SPN_woQIHLPS_afterQC3@meta.data[, c("predicted.celltype", "SPN_subtype")]
+
+# factor → character（安全のため）
+meta_df$predicted.celltype <- as.character(meta_df$predicted.celltype)
+meta_df$SPN_subtype <- as.character(meta_df$SPN_subtype)
+
+# NA除去
+meta_df <- na.omit(meta_df)
+
+# 組み合わせごとに頻度集計
+plot_df <- meta_df %>%
+  group_by(predicted.celltype, SPN_subtype) %>%
+  summarise(value = n(), .groups = "drop")
+
+plot_df_long <- plot_df %>%
+  tidyr::pivot_longer(cols = c(predicted.celltype, SPN_subtype),
+                      names_to = "axis",
+                      values_to = "category")
+ggplot(
+  links,
+  aes(
+    axis1 = predicted.celltype,
+    axis2 = SPN_subtype,
+    y = value
+  )
+) +
+  geom_alluvium(
+    aes(fill = predicted.celltype),
+    width = 1/12,
+    alpha = 1      
+  ) +
+  geom_stratum(
+    width = 1/12,
+    fill = "grey80",
+    color = "black",
+    alpha = 1       
+  ) +
+  geom_label(
+    stat = "stratum",
+    aes(label = after_stat(stratum)),
+    alpha = 1       
+  ) +
+  scale_x_discrete(limits = c("Predicted", "Subtype"), expand = c(.1, .1)) +
+  theme_minimal()
+
+```
