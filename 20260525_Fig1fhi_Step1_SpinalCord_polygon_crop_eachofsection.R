@@ -1,5 +1,4 @@
-# 読み込んだgeojsonをもとに、各細胞に対して由来するsection名を与えるコード
-
+# Code that assigns a section name to each cell based on the loaded GeoJSON
 PolygonAddSections <- function(object, polygons, pixel_size = 0.2125,sections){
   #' Crop a Seurat Object using a list of Polygons
   #' 
