@@ -1,3 +1,4 @@
+#load GeoJSON files indicating the place of the central canal of each section
 # 2DGN1
 Center_2DGF_N1_T1_4_1<- geojson_sf("./Xenium_SC/ROI_geojson/2DGF_center/1-1-1.geojson")
 Center_2DGF_N1_T1_4_2<- geojson_sf("./Xenium_SC/ROI_geojson/2DGF_center/1-1-2.geojson")
