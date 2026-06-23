@@ -331,7 +331,7 @@ Polygon_Ctrl_N3_L6S1_6<- geojson_sf("./Xenium_SC/ROI_geojson/Ctrl/3-8-6.geojson"
 
 
 
-# 以下のコードは、.pngのデータでROIを囲ってしまったCtrlF,ColdF,2DGF,2DGMのデータをscaleするためのコード
+# The following code is used to scale the CtrlF, ColdF, 2DGF, and 2DGM data where the ROI has been enclosed by .png data.
 library(geojsonsf)
 
 library(geojsonsf)
