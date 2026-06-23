@@ -1,5 +1,6 @@
-# tiff画像をベースに領域を囲む
-# geojsonファイルを読み込むためのコード
+# ROIs for each sections are required. (ROI should be acquired on .tiff image.)
+# In some conditions, .png image is used for making ROI, so the code is slightly different.
+# This code is for reading geojson file indicating ROI.
 
 
 # ColdN1
