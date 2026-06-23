@@ -1,3 +1,5 @@
+# Codes for calculating the distance between the central canal and each SPN.
+
 # dfにQIHスライド上のSPNの各点の情報を、cellIDとともに格納
 
 # すべてのfov名を取得
